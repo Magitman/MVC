@@ -10,13 +10,14 @@ public class ProverbsApp {
     public static void main(String[] args) {
         Model model = new Model();
         View view = new View();
-        Controller controller = new Controller(model, view);
+        Controller controller = new Controller(model);
 
+        model.addObserver(view);
         view.setController(controller);
     }
 }
 
-class Model {
+class Model extends Observable {
     List<String> proverbs;
 
     public Model() {
@@ -32,12 +33,15 @@ class Model {
         }
     }
 
-    public String getRandomProverb(){
-        return proverbs.get((int)(Math.random() * (9 - 0)));
+    public void getRandomProverb(){
+        String proverb = proverbs.get((int)(Math.random() * (9 - 0)));
+
+        setChanged();
+        notifyObservers(proverb);
     }
 }
 
-class View extends JFrame {
+class View extends JFrame implements Observer{
     private JButton button;
     private JLabel display;
     private JPanel panel;
@@ -68,20 +72,24 @@ class View extends JFrame {
     public void setController(Controller controller){
         this.button.addActionListener(controller);
     }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        if(o != null && o instanceof Model)
+            this.display.setText((String) arg);
+    }
 }
 
 class Controller implements ActionListener {
     private Model model;
-    private View view;
 
-    public Controller (Model model, View view){
+    public Controller (Model model){
         this.model = model;
-        this.view = view;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String proverb = this.model.getRandomProverb();
-        this.view.updateView(proverb);
+        this.model.getRandomProverb();
+        //this.view.updateView(proverb);
     }
 }
